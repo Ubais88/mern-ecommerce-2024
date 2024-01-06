@@ -37,7 +37,6 @@ const App = () => {
     <Router>
       {/* Header */}
       <Header />
-
       <Suspense fallback={<Loader />}>
         <Routes>
           <Route path="/" element={<Home />} />

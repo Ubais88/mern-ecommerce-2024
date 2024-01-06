@@ -1,17 +1,25 @@
 const express = require('express');
 const app = express();
-const  {connectDB}  = require("./config/database");
 require('dotenv').config()
-app.use(express.json());
 
-const PORT = process.env.PORT || 8000;
+// routes
+const userRoutes = require("./routes/user");
+
+// DB
+const  { connectDB }  = require("./config/database");
 connectDB();
 
+app.use(express.json());
+
+
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(`Server is listening on ${PORT}`);
 });
 
+
 // using routes
+app.use("/api/v1/user", userRoutes );
 
 
 app.get("/", (req, res) => {

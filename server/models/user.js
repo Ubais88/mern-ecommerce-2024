@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 
-
 const userSchema = new mongoose.Schema(
   {
     _id: {
@@ -42,6 +41,7 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+
 userSchema.virtual("age").get(function () {
   const today = new Date();
   const dob = this.dob;
@@ -56,4 +56,4 @@ userSchema.virtual("age").get(function () {
   return age;
 });
 
-export const User = mongoose.model("User", userSchema);
+module.exports = mongoose.model("User", userSchema);

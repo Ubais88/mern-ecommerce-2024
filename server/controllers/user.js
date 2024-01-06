@@ -1,7 +1,7 @@
-import { User } from "../models/user.js";
+const User = require('../models/user')
 
 
-export const newUser = async (req,res) => {
+exports.newUser = async (req,res) => {
   try {
     const { name, email, photo, gender, _id, dob } = req.body;
 
@@ -32,6 +32,11 @@ export const newUser = async (req,res) => {
       message: `Welcome , ${savedUser.name}`,
     });
   } catch (error) {
-    next(error);
+    console.log(error);
+    res.status(500).json({
+        success: false,
+        error: error.message,
+        message: 'something went wrong'
+    })
   }
 };

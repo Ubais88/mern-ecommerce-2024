@@ -6,14 +6,17 @@ exports.newUser = async (req,res) => {
     const { name, email, photo, gender, _id, dob } = req.body;
 
     if (!name || !email || !photo || !gender || !_id || !dob) {
-      return next(new ErrorHandler("All Fields Are Required", 400));
+      return res.status(401).json({
+        success: false,
+        message: `All fields are required`,
+      });
     }
-
     let savedUser = await User.findById(_id);
     if (savedUser) {
-      return res.status(200).json({
-        success: true,
-        message: `Welcome , ${savedUser.name}`,
+      return res.status(400).json({
+        success: false,
+        data: savedUser,
+        message: `Already have an account`,
       });
     }
 
@@ -30,6 +33,25 @@ exports.newUser = async (req,res) => {
       success: true,
       Data: savedUser,
       message: `Welcome , ${savedUser.name}`,
+    });
+    
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+        success: false,
+        error: error.message,
+        message: 'something went wrong'
+    })
+  }
+};
+
+exports.getAllUsers = async (req , res) => {
+  try {
+    const users = await User.find({});
+    res.status(200).json({
+      success: true,
+      Data: users,
+      message: "all users fetched successfully",
     });
   } catch (error) {
     console.log(error);

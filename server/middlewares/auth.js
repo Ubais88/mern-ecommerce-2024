@@ -1,7 +1,7 @@
-import User from "../models/user";
+const User = require('../models/user')
 
 // middleware to check admin or not
-export const isAdmin = async(req , res , next) => {
+exports.isAdmin = async(req , res , next) => {
   try {
     const { id } = req.query;
 

@@ -107,3 +107,28 @@ exports.getAdminProducts = async (req , res) => {
     });
   }
 };
+
+exports.getSingleProduct = async (req , res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(402).json({
+        success: false,
+        message: "Product not found with this id"
+      })
+    }
+    res.status(200).json({
+      success: true,
+      data: product,
+      message: "product details fetched successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "something went wrong",
+    });
+  }
+};

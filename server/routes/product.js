@@ -9,6 +9,7 @@ router.get("/latest", getLatestProducts);
 router.get("/categories", getAllCategories);
 router.get("/admin-products", getAdminProducts);
 router.get("/:id", getSingleProduct);
+router.put("/:id", singleUpload, updateProduct);
 
 
 module.exports = router;

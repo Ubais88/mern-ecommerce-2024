@@ -132,3 +132,45 @@ exports.getSingleProduct = async (req , res) => {
     });
   }
 };
+
+exports.updateProduct = async (req , res) => {
+  try {
+    const { id } = req.params;
+    const { name, category, price, stock } = req.body;
+    const photo = req.file;
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+    if (photo) {
+      rm(product.photo, () => {
+        console.log("old photo Deleted");
+      });
+      product.photo = photo.path;
+    }
+
+    if (name) product.name = name;
+    if (price) product.price = price;
+    if (category) product.category = category;
+    if (stock) product.stock = stock;
+
+    const updateProduct = await product.save();
+
+    res.status(200).json({
+      success: true,
+      data: updateProduct,
+      message: "Product updated successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "something went wrong",
+    });
+  }
+};

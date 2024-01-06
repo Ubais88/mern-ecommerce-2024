@@ -34,7 +34,7 @@ exports.newUser = async (req,res) => {
       Data: savedUser,
       message: `Welcome , ${savedUser.name}`,
     });
-    
+
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -60,5 +60,31 @@ exports.getAllUsers = async (req , res) => {
         error: error.message,
         message: 'something went wrong'
     })
+  }
+};
+
+exports.getUser = async (req , res) => {
+  try {
+    const  id  = req.params.id;
+
+    const user = await User.findById({ _id: id });
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message:"User not found with this ID"
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user,
+      message: "user fetched successfully",
+    });
+
+  } catch (error) {
+     res.status(500).json({
+        success: false,
+        message:"something went wrong"
+      })
   }
 };

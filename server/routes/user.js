@@ -7,7 +7,7 @@ const { isAdmin } = require("../middlewares/auth.js")
 
 router.post('/new', newUser )
 router.get('/all', isAdmin , getAllUsers )
-
+router.get('/:id' , getUser )
 
 
 module.exports = router;

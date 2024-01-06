@@ -70,3 +70,21 @@ exports.getLatestProducts = async (req , res) => {
     });
   }
 };
+
+exports.getAllCategories = async (req , res) => {
+  try {
+    const categories = await Product.distinct("category");
+    res.status(200).json({
+      success: true,
+      data: categories,
+      message: "all categories fetched successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "something went wrong",
+    });
+  }
+};

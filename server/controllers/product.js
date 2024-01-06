@@ -39,9 +39,29 @@ exports.newProduct = async (req , res) => {
       data: savedProduct,
       message: "Product ceated successfully",
     });
-    
+
   } 
   catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "something went wrong",
+    });
+  }
+};
+
+
+exports.getLatestProducts = async (req , res) => {
+  try {
+    const products = await Product.find({}).sort({ createdAt: -1 }).limit(5);
+
+    res.status(200).json({
+      success: true,
+      data: products,
+      message: "latest 5 products fetched successfully",
+    });
+  } catch (error) {
     console.log(error);
     res.status(500).json({
       success: false,

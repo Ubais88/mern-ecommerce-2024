@@ -88,3 +88,22 @@ exports.getAllCategories = async (req , res) => {
     });
   }
 };
+
+exports.getAdminProducts = async (req , res) => {
+  try {
+    const products = await Product.find();
+
+    res.status(200).json({
+      success: true,
+      data: products,
+      message: "all admin products fetched successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "something went wrong",
+    });
+  }
+};

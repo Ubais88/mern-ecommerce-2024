@@ -82,6 +82,43 @@ exports.getUser = async (req , res) => {
     });
 
   } catch (error) {
+    console.log(error)
+     res.status(500).json({
+        success: false,
+        message:"something went wrong"
+      })
+  }
+};
+
+
+exports.deleteUser = async (req , res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById({ _id: id });
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message:"User not found with this ID"
+      })
+    }
+
+    const deleteUser = await user.deleteOne();
+
+    if (!deleteUser) {
+      return res.status(402).json({
+        success: false,
+        message:"Failed to delete user"
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      data: deleteUser,
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    console.log(error)
      res.status(500).json({
         success: false,
         message:"something went wrong"

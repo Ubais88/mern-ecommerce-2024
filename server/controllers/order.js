@@ -2,6 +2,103 @@ const { invalidateCache, myCache } = require("../config/cache");
 const Order = require("../models/order");
 const { reduceStock } = require("../utils/features");
 
+exports.myOrders = async (req, res) => {
+  try {
+    const { id } = req.query;
+    let orders;
+
+    if (myCache && myCache.has(`my-order-${id}`)) {
+      orders = JSON.parse(myCache.get(`my-order-${id}`));
+    } else {
+      orders = await Order.find({ user: id });
+      if (myCache) {
+        myCache.set(`my-order-${id}`, JSON.stringify(orders));
+      } else {
+        console.error("myCache is not initialized correctly");
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: orders,
+      message: " All Order fetched successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Something went wrong",
+    });
+  }
+};
+
+exports.allOrders = async (req, res) => {
+  try {
+    let allOrders;
+    if (myCache && myCache.has(`all-orders`)) {
+      allOrders = JSON.parse(myCache.get(`all-orders`));
+    } else {
+      allOrders = await Order.find().populate("user", "name");
+      if (myCache) {
+        myCache.set(`all-orders`, JSON.stringify(allOrders));
+      } else {
+        console.error("myCache is not initialized correctly");
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: allOrders,
+      message: " All Order fetched successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Something went wrong",
+    });
+  }
+};
+
+exports.getSingleOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    let order;
+    if (myCache && myCache.has(`orser-${id}`)) {
+      order = JSON.parse(myCache.get(`orser-${id}`));
+    } else {
+      order = await Order.findById(id);
+      if (!order) {
+        return res.status(402).json({
+          success: false,
+          message: "Order not found",
+        });
+      }
+      if (myCache) {
+        myCache.set(`orser-${id}`, JSON.stringify(order));
+      } else {
+        console.error("myCache is not initialized correctly");
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: order,
+      message: " All Order fetched successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Something went wrong",
+    });
+  }
+};
+
 exports.newOrder = async (req, res) => {
   try {
     const {
@@ -51,26 +148,36 @@ exports.newOrder = async (req, res) => {
   }
 };
 
-exports.myOrders = async (req, res) => {
+exports.updateOrder = async (req, res) => {
   try {
-    const { id } = req.query;
-    let orders;
+    const { id } = req.params;
+    const order = await Order.findById(id);
 
-    if (myCache && myCache.has(`my-order-${id}`)) {
-      orders = JSON.parse(myCache.get(`my-order-${id}`));
-    } else {
-      orders = await Order.find({ user: id });
-      if (myCache) {
-        myCache.set(`my-order-${id}`, JSON.stringify(orders));
-      } else {
-        console.error("myCache is not initialized correctly");
-      }
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found/invalid id",
+      });
     }
+
+    switch (order.status) {
+      case "Processing":
+        order.status = "Shipped";
+        break;
+      case "Shipped":
+        order.status = "Delivered";
+        break;
+      default:
+        order.status = "Delivered";
+        break;
+    }
+    const updatedOrder = await order.save();
+    await invalidateCache({ product: false, order: true, admin: true });
 
     res.status(200).json({
       success: true,
-      data: orders,
-      message: " All Order fetched successfully",
+      data: updatedOrder,
+      message: "Order proccessed successfully",
     });
   } catch (error) {
     console.log(error);
@@ -82,32 +189,3 @@ exports.myOrders = async (req, res) => {
   }
 };
 
-
-exports.allOrders = async (req, res) => {
-    try {
-      let allOrders;
-      if (myCache && myCache.has(`all-orders`)) {
-        allOrders = JSON.parse(myCache.get(`all-orders`));
-      } else {
-        allOrders = await Order.find();
-        if (myCache) {
-          myCache.set(`all-orders`, JSON.stringify(allOrders));
-        } else {
-          console.error("myCache is not initialized correctly");
-        }
-      }
-  
-      res.status(200).json({
-        success: true,
-        data: allOrders,
-        message: " All Order fetched successfully",
-      });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({
-        success: false,
-        error: error.message,
-        message: "Something went wrong",
-      });
-    }
-  };

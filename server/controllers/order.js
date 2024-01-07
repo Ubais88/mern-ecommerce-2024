@@ -56,12 +56,12 @@ exports.myOrders = async (req, res) => {
     const { id } = req.query;
     let orders;
 
-    if (myCache && myCache.has(`my-order-${user}`)) {
-      orders = JSON.parse(myCache.get(`my-order-${user}`));
+    if (myCache && myCache.has(`my-order-${id}`)) {
+      orders = JSON.parse(myCache.get(`my-order-${id}`));
     } else {
       orders = await Order.find({ user: id });
       if (myCache) {
-        myCache.set(`my-order-${user}`, JSON.stringify(orders));
+        myCache.set(`my-order-${id}`, JSON.stringify(orders));
       } else {
         console.error("myCache is not initialized correctly");
       }
@@ -81,3 +81,33 @@ exports.myOrders = async (req, res) => {
     });
   }
 };
+
+
+exports.allOrders = async (req, res) => {
+    try {
+      let allOrders;
+      if (myCache && myCache.has(`all-orders`)) {
+        allOrders = JSON.parse(myCache.get(`all-orders`));
+      } else {
+        allOrders = await Order.find();
+        if (myCache) {
+          myCache.set(`all-orders`, JSON.stringify(allOrders));
+        } else {
+          console.error("myCache is not initialized correctly");
+        }
+      }
+  
+      res.status(200).json({
+        success: true,
+        data: allOrders,
+        message: " All Order fetched successfully",
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        message: "Something went wrong",
+      });
+    }
+  };

@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 require('dotenv').config()
 
+
 // routes
 const userRoutes = require("./routes/user");
 const productRoutes = require("./routes/product");
@@ -9,6 +10,8 @@ const productRoutes = require("./routes/product");
 // DB
 const  { connectDB }  = require("./config/database");
 connectDB();
+
+
 
 app.use(express.json());
 

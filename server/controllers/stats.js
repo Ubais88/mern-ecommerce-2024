@@ -2,7 +2,7 @@ const { myCache } = require("../config/cache");
 const Order = require("../models/order");
 const Product = require("../models/product");
 const User = require("../models/user");
-const { calculatePercentage, getInventories } = require("../utils/features");
+const { calculatePercentage, getInventories, getChartData } = require("../utils/features");
 
 exports.getDashoboardStats = async (req, res) => {
   try {
@@ -149,12 +149,15 @@ exports.getDashoboardStats = async (req, res) => {
 
       lastSixMonthOrders.forEach((order) => {
         const creationDate = order.createdAt;
-        const monthDiff = today.getMonth() - creationDate.getMonth();
+        const monthDiff =
+          (today.getMonth() - creationDate.getMonth() + 12) % 12;
+
         if (monthDiff < 6) {
           orderMonthsCount[6 - monthDiff - 1] += 1;
           orderMonthlyRevenue[6 - monthDiff - 1] += order.total;
         }
       });
+      
       const categoryCount = await getInventories({ categories, productsCount });
 
       const userRatio = {
@@ -292,10 +295,10 @@ exports.getPieChart = async (req, res) => {
       };
 
       const usersAgeGroup = {
-        teen:allUsers.filter(i => i.age < 20).length,
-        adult:allUsers.filter(i => i.age >= 20 && i.age <= 40).length,
-        old:allUsers.filter(i => i.age > 40).length
-      }
+        teen: allUsers.filter((i) => i.age < 20).length,
+        adult: allUsers.filter((i) => i.age >= 20 && i.age <= 40).length,
+        old: allUsers.filter((i) => i.age > 40).length,
+      };
 
       const adminCustomer = {
         admin: adminUsers,
@@ -335,6 +338,68 @@ exports.getPieChart = async (req, res) => {
 
 exports.getBarChart = async (req, res) => {
   try {
+    let charts;
+
+    if (myCache && myCache.has("admin-bar-charts")) {
+      charts = JSON.parse(myCache.get("admin-bar-charts"));
+    } else {
+      const today = new Date();
+
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setDate(sixMonthsAgo.getMonth() - 6);
+
+      const twelveMonthsAgo = new Date();
+      sixMonthsAgo.setDate(twelveMonthsAgo.getMonth() - 12);
+
+      const sixMonthProductPromise = Product.find({
+        createdAt: {
+          $gte: sixMonthsAgo,
+          $lte: today,
+        },
+      }).select("createdAt")
+
+      const sixMonthUsersPromise = User.find({
+        createdAt: {
+          $gte: sixMonthsAgo,
+          $lte: today,
+        },
+      }).select("createdAt")
+
+      const twelveMonthOrdersPromise = Order.find({
+        createdAt: {
+          $gte: twelveMonthsAgo,
+          $lte: today,
+        },
+      }).select("createdAt")
+
+      const [products, users, orders] = await Promise.all([
+        sixMonthProductPromise,
+        sixMonthUsersPromise,
+        twelveMonthOrdersPromise,
+      ]);
+
+      const productCounts = getChartData({length:6 , today , docArr:products})
+      const usersCounts = getChartData({length:6 , today , docArr:users})
+      const ordersCounts = getChartData({length:12 , today , docArr:orders})
+
+      charts = {
+        users:usersCounts,
+        product:productCounts,
+        orders:ordersCounts,
+      };
+
+      if (myCache) {
+        myCache.set("admin-bar-charts", JSON.stringify(charts));
+      } else {
+        console.error("myCache is not initialized correctly");
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: charts,
+      message: "latest 5 products fetched successfully",
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({

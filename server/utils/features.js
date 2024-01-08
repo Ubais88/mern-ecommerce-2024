@@ -18,9 +18,8 @@ exports.calculatePercentage = (thisMonth, lastMonth) => {
   return Number(percent.toFixed(0));
 };
 
-
-exports.getInventories = async({categories , productsCount}) => {
-    const categoriesCountPromise = categories.map((category) =>
+exports.getInventories = async ({ categories, productsCount }) => {
+  const categoriesCountPromise = categories.map((category) =>
     Product.countDocuments({ category })
   );
 
@@ -31,6 +30,22 @@ exports.getInventories = async({categories , productsCount}) => {
       [category]: Math.round((categoriesCount[i] / productsCount) * 100),
     });
   });
-  
+
   return categoryCount;
-}
+};
+
+exports.getChartData = ({length, today , docArr}) => {
+
+  const data = new Array(length).fill(0);
+
+  docArr.forEach((i) => {
+    const creationDate = i.createdAt;
+    const monthDiff = (today.getMonth() - creationDate.getMonth() + 12) % 12;
+
+    if (monthDiff < length) {
+      data[length - monthDiff - 1] += 1;
+    }
+  });
+
+  return data;
+};

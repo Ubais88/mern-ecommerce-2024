@@ -183,7 +183,7 @@ exports.updateOrder = async (req, res) => {
         order: true,
         admin: true,
         userId: order.user,
-        orderId: String(order._id),
+        orderId: order._id,
       });
 
     res.status(200).json({

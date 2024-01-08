@@ -7,6 +7,7 @@ const morgan = require('morgan');
 const userRoutes = require("./routes/user");
 const productRoutes = require("./routes/product");
 const orderRoutes = require("./routes/order");
+const paymentRoutes = require("./routes/payment");
 
 // DB
 const  { connectDB }  = require("./config/database");
@@ -28,6 +29,7 @@ app.listen(PORT, () => {
 app.use("/api/v1/user", userRoutes );
 app.use("/api/v1/product", productRoutes )
 app.use("/api/v1/order", orderRoutes )
+app.use("/api/v1/payment", paymentRoutes )
 
 app.get("/", (req, res) => {
   res.send("<h1>Server Is Ready</h1>");

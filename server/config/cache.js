@@ -1,21 +1,20 @@
 const NodeCache = require('node-cache');
-const Product = require("../models/product");
-const Order = require("../models/order");
 
 
 exports.myCache = new NodeCache();
 
-// module.exports = myCache;
 
-exports.invalidateCache = async({ product , order , admin , userId ,orderId}) => {
+exports.invalidateCache = async({ product , order , admin , userId ,orderId , productId }) => {
     if(product){
-        const productKeys = ["latest-products", "categories" , "all-products" , ""];
-        const products = await Product.find({}).select("_id");
+        const productKeys = ["latest-products", "categories" , "all-products" , `product-${productId}` ];
+        console.log("first",productId)
 
-        products.forEach((i) => {
-            productKeys.push(`product-${i._id}`)
-        });
+        // if (typeof productId === "string") productKeys.push(`product-${productId}`);
 
+        // if (typeof productId === "object")
+        //   productId.forEach((i) => productKeys.push(`product-${i}`));
+
+          
         this.myCache.del(productKeys)
     }
     if (order) {
@@ -27,5 +26,12 @@ exports.invalidateCache = async({ product , order , admin , userId ,orderId}) =>
     
         this.myCache.del(ordersKeys);
       }
-    if(admin){}
+      if (admin) {
+        myCache.del([
+          "admin-stats",
+          "admin-pie-charts",
+          "admin-bar-charts",
+          "admin-line-charts",
+        ]);
+      }
 }

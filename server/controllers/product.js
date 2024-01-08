@@ -1,10 +1,8 @@
-const {myCache, invalidateCache} = require("../config/cache");
+const { myCache, invalidateCache } = require("../config/cache");
 const Product = require("../models/product");
 require("dotenv").config();
 const fs = require("fs");
 const rm = fs.rm;
-
-
 
 exports.getLatestProducts = async (req, res) => {
   try {
@@ -95,16 +93,14 @@ exports.getAdminProducts = async (req, res) => {
   }
 };
 
-
 exports.getSingleProduct = async (req, res) => {
   try {
     const { id } = req.params;
     let product;
 
-    if(myCache && myCache.has(`product-${id}`)) {
+    if (myCache && myCache.has(`product-${id}`)) {
       product = JSON.stringify(myCache.get(`product-${id}`));
-    } 
-    else {
+    } else {
       product = await Product.findById(id);
       if (!product) {
         return res.status(402).json({
@@ -116,7 +112,7 @@ exports.getSingleProduct = async (req, res) => {
         myCache.set(`product-${id}`, JSON.stringify(product));
       } else {
         console.error("myCache is not initialized correctly");
-      }      
+      }
     }
 
     res.status(200).json({
@@ -165,7 +161,7 @@ exports.newProduct = async (req, res) => {
       photo: photo.path,
     });
 
-    await invalidateCache({product:true})
+    await invalidateCache({ product: true });
 
     res.status(200).json({
       success: true,
@@ -208,7 +204,7 @@ exports.updateProduct = async (req, res) => {
     if (stock) product.stock = stock;
 
     const updateProduct = await product.save();
-    await invalidateCache({product:true})
+    await invalidateCache({ product: true, productId: product._id });
     res.status(200).json({
       success: true,
       data: updateProduct,
@@ -224,7 +220,6 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-
 exports.deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -239,8 +234,9 @@ exports.deleteProduct = async (req, res) => {
       console.log("photo Deleted");
     });
     const deletedProduct = await Product.deleteOne();
-    
-    await invalidateCache({product:true})
+
+    await invalidateCache({ product: true, productId: product._id });
+
     res.status(200).json({
       success: true,
       data: deletedProduct,
@@ -255,7 +251,6 @@ exports.deleteProduct = async (req, res) => {
     });
   }
 };
-
 
 exports.getAllProducts = async (req, res) => {
   try {

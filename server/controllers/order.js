@@ -67,8 +67,8 @@ exports.getSingleOrder = async (req, res) => {
     const { id } = req.params;
 
     let order;
-    if (myCache && myCache.has(`orser-${id}`)) {
-      order = JSON.parse(myCache.get(`orser-${id}`));
+    if (myCache && myCache.has(`order-${id}`)) {
+      order = JSON.parse(myCache.get(`order-${id}`));
     } else {
       order = await Order.findById(id);
       if (!order) {
@@ -78,7 +78,7 @@ exports.getSingleOrder = async (req, res) => {
         });
       }
       if (myCache) {
-        myCache.set(`orser-${id}`, JSON.stringify(order));
+        myCache.set(`order-${id}`, JSON.stringify(order));
       } else {
         console.error("myCache is not initialized correctly");
       }
@@ -131,7 +131,13 @@ exports.newOrder = async (req, res) => {
     });
 
     await reduceStock(orderItems);
-    await invalidateCache({ product: true, order: true, admin: true });
+    await invalidateCache({
+        product: true,
+        order: true,
+        admin: true,
+        userId: user,
+        productId: savedOrder.orderItems.map((i) => String(i.productId)),
+      });
 
     res.status(200).json({
       success: true,
@@ -172,7 +178,13 @@ exports.updateOrder = async (req, res) => {
         break;
     }
     const updatedOrder = await order.save();
-    await invalidateCache({ product: false, order: true, admin: true });
+    await invalidateCache({
+        product: false,
+        order: true,
+        admin: true,
+        userId: order.user,
+        orderId: String(order._id),
+      });
 
     res.status(200).json({
       success: true,
@@ -189,3 +201,37 @@ exports.updateOrder = async (req, res) => {
   }
 };
 
+exports.deleteOrder = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const order = await Order.findById(id);
+      if (!order) {
+        return res.status(404).json({
+          success: false,
+          message: "Order not found/invalid id",
+        });
+      }
+  
+      const updatedOrder = await order.deleteOne();
+      await invalidateCache({
+        product: false,
+        order: true,
+        admin: true,
+        userId: order.user,
+        orderId: String(order._id),
+      });
+  
+      res.status(200).json({
+        success: true,
+        data: updatedOrder,
+        message: "Order deleted successfully",
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        message: "Something went wrong",
+      });
+    }
+  };

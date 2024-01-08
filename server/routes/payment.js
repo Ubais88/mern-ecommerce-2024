@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 
 const { newCoupon, applyDiscount , allCoupons ,deleteCoupon } = require('../controllers/payment');
+const { isAdmin } = require('../middlewares/auth');
 
 
-router.post('/coupon/new', newCoupon)
+router.post('/coupon/new',isAdmin , newCoupon)
 router.get('/discount', applyDiscount)
-router.get('/coupon/all', allCoupons)
-router.delete('/coupon/:id', deleteCoupon)
+router.get('/coupon/all',isAdmin , allCoupons)
+router.delete('/coupon/:id', isAdmin , deleteCoupon)
 
 module.exports = router;

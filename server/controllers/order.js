@@ -136,7 +136,7 @@ exports.newOrder = async (req, res) => {
         order: true,
         admin: true,
         userId: user,
-        productId: savedOrder.orderItems.map((i) => String(i.productId)),
+        productId: savedOrder.orderItems.map((i) => i.productId),
       });
 
     res.status(200).json({

@@ -4,15 +4,10 @@ const NodeCache = require('node-cache');
 exports.myCache = new NodeCache();
 
 
-exports.invalidateCache = async({ product , order , admin , userId ,orderId , productId }) => {
+exports.invalidateCache = ({ product , order , admin , userId ,orderId , productId }) => {
     if(product){
         const productKeys = ["latest-products", "categories" , "all-products" , `product-${productId}` ];
         console.log("first",productId)
-
-        // if (typeof productId === "string") productKeys.push(`product-${productId}`);
-
-        // if (typeof productId === "object")
-        //   productId.forEach((i) => productKeys.push(`product-${i}`));
 
           
         this.myCache.del(productKeys)

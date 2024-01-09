@@ -131,7 +131,7 @@ exports.newOrder = async (req, res) => {
     });
 
     await reduceStock(orderItems);
-    await invalidateCache({
+    invalidateCache({
         product: true,
         order: true,
         admin: true,
@@ -178,7 +178,7 @@ exports.updateOrder = async (req, res) => {
         break;
     }
     const updatedOrder = await order.save();
-    await invalidateCache({
+    invalidateCache({
         product: false,
         order: true,
         admin: true,
@@ -213,7 +213,7 @@ exports.deleteOrder = async (req, res) => {
       }
   
       const updatedOrder = await order.deleteOne();
-      await invalidateCache({
+      invalidateCache({
         product: false,
         order: true,
         admin: true,

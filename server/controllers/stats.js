@@ -2,7 +2,11 @@ const { myCache } = require("../config/cache");
 const Order = require("../models/order");
 const Product = require("../models/product");
 const User = require("../models/user");
-const { calculatePercentage, getInventories, getChartData } = require("../utils/features");
+const {
+  calculatePercentage,
+  getInventories,
+  getChartData,
+} = require("../utils/features");
 
 exports.getDashoboardStats = async (req, res) => {
   try {
@@ -157,7 +161,7 @@ exports.getDashoboardStats = async (req, res) => {
           orderMonthlyRevenue[6 - monthDiff - 1] += order.total;
         }
       });
-      
+
       const categoryCount = await getInventories({ categories, productsCount });
 
       const userRatio = {
@@ -356,21 +360,21 @@ exports.getBarChart = async (req, res) => {
           $gte: sixMonthsAgo,
           $lte: today,
         },
-      }).select("createdAt")
+      }).select("createdAt");
 
       const sixMonthUsersPromise = User.find({
         createdAt: {
           $gte: sixMonthsAgo,
           $lte: today,
         },
-      }).select("createdAt")
+      }).select("createdAt");
 
       const twelveMonthOrdersPromise = Order.find({
         createdAt: {
           $gte: twelveMonthsAgo,
           $lte: today,
         },
-      }).select("createdAt")
+      }).select("createdAt");
 
       const [products, users, orders] = await Promise.all([
         sixMonthProductPromise,
@@ -378,14 +382,18 @@ exports.getBarChart = async (req, res) => {
         twelveMonthOrdersPromise,
       ]);
 
-      const productCounts = getChartData({length:6 , today , docArr:products})
-      const usersCounts = getChartData({length:6 , today , docArr:users})
-      const ordersCounts = getChartData({length:12 , today , docArr:orders})
+      const productCounts = getChartData({
+        length: 6,
+        today,
+        docArr: products,
+      });
+      const usersCounts = getChartData({ length: 6, today, docArr: users });
+      const ordersCounts = getChartData({ length: 12, today, docArr: orders });
 
       charts = {
-        users:usersCounts,
-        product:productCounts,
-        orders:ordersCounts,
+        users: usersCounts,
+        product: productCounts,
+        orders: ordersCounts,
       };
 
       if (myCache) {
@@ -412,6 +420,66 @@ exports.getBarChart = async (req, res) => {
 
 exports.getLineChart = async (req, res) => {
   try {
+    let charts;
+
+    if (myCache && myCache.has("admin-line-charts")) {
+      charts = JSON.parse(myCache.get("admin-line-charts"));
+    } else {
+      const today = new Date();
+      const twelveMonthsAgo = new Date();
+      twelveMonthsAgo.setDate(twelveMonthsAgo.getMonth() - 12);
+
+      const baseQuery = {
+        createdAt: {
+          $gte: twelveMonthsAgo,
+          $lte: today,
+        },
+      };
+
+      const [products, users, orders] = await Promise.all([
+        Product.find(baseQuery).select("createdAt"),
+        User.find(baseQuery).select("createdAt"),
+        Order.find(baseQuery).select(["createdAt", "discount", "total"]),
+      ]);
+
+      const productCounts = getChartData({
+        length: 12,
+        today,
+        docArr: products,
+      });
+      const usersCounts = getChartData({ length: 12, today, docArr: users });
+      const discount = getChartData({
+        length: 12,
+        today,
+        docArr: orders,
+        property: "discount",
+      });
+      const revenue = getChartData({
+        length: 12,
+        today,
+        docArr: orders,
+        property: "total",
+      });
+
+      charts = {
+        users: usersCounts,
+        product: productCounts,
+        discount, 
+        revenue,
+      };
+
+      if (myCache) {
+        myCache.set("admin-line-charts", JSON.stringify(charts));
+      } else {
+        console.error("myCache is not initialized correctly");
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: charts,
+      message: "details fetched successfully",
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({

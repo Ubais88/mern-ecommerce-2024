@@ -3,6 +3,7 @@ const app = express();
 require('dotenv').config()
 const morgan = require('morgan');
 
+
 // routes
 const userRoutes = require("./routes/user");
 const productRoutes = require("./routes/product");
@@ -13,6 +14,7 @@ const dashboardRoutes = require("./routes/stats");
 // DB
 const  { connectDB }  = require("./config/database");
 connectDB();
+
 
 
 

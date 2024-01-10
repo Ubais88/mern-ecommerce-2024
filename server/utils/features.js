@@ -1,4 +1,6 @@
+const { default: Stripe } = require("stripe");
 const Product = require("../models/product");
+require("dotenv").config()
 
 exports.reduceStock = async (orderItems) => {
   for (let i = 0; i < orderItems.length; i++) {
@@ -49,3 +51,6 @@ exports.getChartData = ({length, today , docArr , property}) => {
 
   return data;
 };
+
+
+exports.stripe = new Stripe(process.env.STRIPE_KEY) 

@@ -4,6 +4,7 @@ import { lazy, Suspense } from "react";
 import Loader from "./components/Loader";
 import Header from "./components/Header";
 import "./styles/app.scss"
+import { Toaster } from "react-hot-toast"
 
 const Home = lazy(() => import("./pages/Home"));
 const Search = lazy(() => import("./pages/Search"));
@@ -94,6 +95,7 @@ const App = () => {
           ;
         </Routes>
       </Suspense>
+      <Toaster position="bottom-center"/>
     </Router>
   );
 };
